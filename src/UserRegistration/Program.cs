@@ -18,20 +18,17 @@
             try
             {
                 IWebHost host = BuildWebHost(args, configuration);
-
-                using (IServiceScope scope = host.Services.CreateScope())
+                
+                try
                 {
-                    try
-                    {
-                        //Initialize database
-                    }
-                    catch (Exception ex)
-                    {
-                        Log.Fatal(ex, messageTemplate: "An error occurred initialize the DB.");
-                        return 1;
-                    }
+                    DatabaseInitializer.Initialize(configuration.GetConnectionString("DefaultConnection"));
                 }
-
+                catch (Exception ex)
+                {
+                    Log.Fatal(ex, messageTemplate: "An error occurred initialize the DB.");
+                    return 1;
+                }
+                
                 host.Run();
 
                 return 0;
