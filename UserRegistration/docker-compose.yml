@@ -1,8 +1,0 @@
-version: '3'
-
-services:
-  userregistration:
-    image: userregistration
-    build:
-      context: ./src/UserRegistration
-      dockerfile: Dockerfile
