@@ -1,25 +1,88 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
-
-namespace UserRegistration
+﻿namespace UserRegistration
 {
+    using Microsoft.AspNetCore;
+    using Microsoft.AspNetCore.Hosting;
+    using Microsoft.Extensions.Configuration;
+    using Microsoft.Extensions.DependencyInjection;
+    using Serilog;
+    using System;
+    using System.IO;
+
     public class Program
     {
-        public static void Main(string[] args)
+        public static int Main(string[] args)
         {
-            BuildWebHost(args).Run();
+            IConfiguration configuration = BuildConfiguration(args);
+            Log.Logger = BuildLogger(configuration);
+            
+            try
+            {
+                IWebHost host = BuildWebHost(args, configuration);
+
+                using (IServiceScope scope = host.Services.CreateScope())
+                {
+                    try
+                    {
+                        //Initialize database
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Fatal(ex, messageTemplate: "An error occurred initialize the DB.");
+                        return 1;
+                    }
+                }
+
+                host.Run();
+
+                return 0;
+            }
+            catch (Exception ex)
+            {
+                Log.Fatal(ex, messageTemplate: "Host terminated unexpectedly");
+                return 1;
+            }
+            finally
+            {
+                Log.CloseAndFlush();
+            }
         }
 
-        public static IWebHost BuildWebHost(string[] args) =>
+        public static IWebHost BuildWebHost(string[] args, IConfiguration configuration) =>
             WebHost.CreateDefaultBuilder(args)
-                .UseStartup<Startup>()
-                .Build();
+                   .UseStartup<Startup>()
+                   .UseConfiguration(configuration)
+                   .UseSerilog()
+                   .Build();
+
+        private static ILogger BuildLogger(IConfiguration configuration) =>
+            new LoggerConfiguration()
+                .ReadFrom.Configuration(configuration)
+                .Enrich.FromLogContext()
+                .WriteTo.Console()
+                .CreateLogger();
+
+        private static IConfiguration BuildConfiguration(string[] args)
+        {
+            string environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
+
+            IConfigurationBuilder configuration = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile(path: "appsettings.json", optional: false, reloadOnChange: true)
+                .AddJsonFile(path: $"appsettings.{environment}.json", optional: true, reloadOnChange: true);
+
+            if (environment.Equals(value: "development", comparisonType: StringComparison.OrdinalIgnoreCase))
+            {
+                configuration.AddUserSecrets<Startup>();
+            }
+
+            configuration.AddEnvironmentVariables();
+
+            if (args != null)
+            {
+                configuration.AddCommandLine(args);
+            }
+
+            return configuration.Build();
+        }
     }
 }
