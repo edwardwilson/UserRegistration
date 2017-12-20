@@ -4,17 +4,17 @@
     using Microsoft.AspNetCore.Mvc;
     using UserRegistration.Models;
 
-    public class HomeController : Controller
+    public class UsersController : Controller
     {
         [HttpGet]
-        public IActionResult Index()
+        public IActionResult Register()
         {
             return View();
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Index(object model)
+        public IActionResult Register(UserViewModel model)
         {
             return View(model);
         }
