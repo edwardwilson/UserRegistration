@@ -6,9 +6,17 @@
 
     public class HomeController : Controller
     {
+        [HttpGet]
         public IActionResult Index()
         {
             return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Index(object model)
+        {
+            return View(model);
         }
 
         public IActionResult Error()
