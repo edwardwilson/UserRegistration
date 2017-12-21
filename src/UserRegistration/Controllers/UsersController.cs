@@ -1,6 +1,7 @@
 ﻿namespace UserRegistration.Controllers
 {
     using System.Diagnostics;
+    using System.Threading.Tasks;
     using Microsoft.AspNetCore.Mvc;
     using UserRegistration.Models;
 
@@ -9,13 +10,18 @@
         [HttpGet]
         public IActionResult Register()
         {
-            return View();
+            return View(new UserViewModel());
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Register(UserViewModel model)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             return View(model);
         }
 
