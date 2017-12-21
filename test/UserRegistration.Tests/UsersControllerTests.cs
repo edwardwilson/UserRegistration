@@ -11,7 +11,7 @@ namespace UserRegistration.Tests
         public void Register_ReturnsAViewResult_WithAUserViewModel()
         {
             // Arrange
-            var controller = new UsersController();
+            var controller = new UsersController(null);
 
             // Act
             var result = controller.Register();

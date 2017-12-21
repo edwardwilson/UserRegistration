@@ -4,6 +4,8 @@
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
+    using UserRegistration.Models;
+    using UserRegistration.Services;
 
     public class Startup
     {
@@ -17,6 +19,9 @@
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddDataProtection();
+
+            services.AddTransient<ISqlDataAccess<UserModel>>(provider => new UserModelSqlDataAccess(Configuration.GetConnectionString("DefaultConnection")));
+            services.AddTransient<IUserStore, UserStore>();
 
             services.AddMvc();
         }
@@ -39,7 +44,7 @@
             {
                 routes.MapRoute(
                     name: "default",
-                    template: "{controller=Home}/{action=Index}/{id?}");
+                    template: "{controller=Users}/{action=Register}/{id?}");
             });
         }
     }
